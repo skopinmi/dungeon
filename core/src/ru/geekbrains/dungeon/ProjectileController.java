@@ -3,10 +3,12 @@ package ru.geekbrains.dungeon;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 
 public class ProjectileController {
     private static final int MAX_PROJECTILES = 100;
     private Projectile[] items;
+
 
     public Projectile[] getItems() {
         return items;
@@ -21,12 +23,14 @@ public class ProjectileController {
     }
 
     public void activate(float x, float y, float vx, float vy) {
+
         for (Projectile p : items) {
             if (!p.isActive()) {
                 p.activate(x, y, vx, vy);
                 return;
             }
         }
+
     }
 
     public void update(float dt) {

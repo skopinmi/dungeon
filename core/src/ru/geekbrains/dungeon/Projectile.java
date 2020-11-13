@@ -28,13 +28,14 @@ public class Projectile {
 
     public void activate(float x, float y, float vx, float vy) {
         active = true;
-        position.set(x, y);
+        this.position.set(x, y);
         velocity.set(vx, vy);
     }
 
     public void update(float dt) {
         position.mulAdd(velocity, dt);
-        if (position.x < 0 || position.x > 1280 || position.y < 0 || position.y > 720) {
+        // выход за пределы поля 800
+        if (position.x < 0 || position.x > 800 || position.y < 0 || position.y > 720) {
             deactivate();
         }
         // position = (100, 100)

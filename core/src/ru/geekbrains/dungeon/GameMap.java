@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class GameMap {
     public static final int CELLS_X = 20;
-    public static final int CELLS_Y = 20;
+    public static final int CELLS_Y = 20; // 20 не помещается на экран 720/40 = 18
 
     private byte[][] data;
     private TextureRegion grassTexture;
