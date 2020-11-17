@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import ru.geekbrains.dungeon.GameController;
 import ru.geekbrains.dungeon.GameMap;
 
@@ -11,14 +12,39 @@ public class Hero extends Unit {
     float movementTime;
     float movementMaxTime;
     int targetX, targetY;
+    private byte experience;
+    private byte moveCount;
+    private TextureRegion textureMove;
 
     public Hero(TextureAtlas atlas, GameController gc) {
         super(gc, 1, 1, 10);
         this.texture = atlas.findRegion("knight");
         this.textureHp = atlas.findRegion("hp");
+        this.textureMove = atlas.findRegion("hp");
         this.movementMaxTime = 0.2f;
         this.targetX = cellX;
         this.targetY = cellY;
+        this.experience = 0;
+        this.moveCount = 5;
+    }
+
+    public void setExperience(byte experience) {
+        this.experience = experience;
+    }
+
+    public void addMoveCount() {
+        moveCount -= 1;
+        if (this.moveCount == 0) {
+            this.moveCount = 5;
+        }
+    }
+
+    public int getTargetX() {
+        return targetX;
+    }
+
+    public int getTargetY() {
+        return targetY;
     }
 
     public void update(float dt) {
@@ -42,6 +68,10 @@ public class Hero extends Unit {
             targetX = cellX;
             targetY = cellY;
             m.takeDamage(1);
+            if (!m.isActive()) {
+                experience += 1;
+            }
+            addMoveCount();
         }
 
         if (!gc.getGameMap().isCellPassable(targetX, targetY)) {
@@ -55,6 +85,7 @@ public class Hero extends Unit {
                 movementTime = 0;
                 cellX = targetX;
                 cellY = targetY;
+                addMoveCount();
             }
         }
     }
@@ -74,6 +105,9 @@ public class Hero extends Unit {
         batch.draw(textureHp, px + 2, py + 52, 56, 8);
         batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
         batch.draw(textureHp, px + 2, py + 52, (float) hp / hpMax * 56, 8);
+        batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        batch.draw(textureHp, px + 2, py + 2, (float) moveCount / 5 * 56, 8);
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }
