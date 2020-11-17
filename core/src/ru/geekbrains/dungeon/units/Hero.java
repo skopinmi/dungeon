@@ -12,7 +12,8 @@ public class Hero extends Unit {
     float movementTime;
     float movementMaxTime;
     int targetX, targetY;
-    private byte experience;
+    private int experience;
+    private int maxExperience;
     private byte moveCount;
     private TextureRegion textureMove;
 
@@ -24,12 +25,16 @@ public class Hero extends Unit {
         this.movementMaxTime = 0.2f;
         this.targetX = cellX;
         this.targetY = cellY;
+        // у нас только 2 монстра дальше герой становится сильнее / преходит на другой уровень :)
+        this.maxExperience = 2;
         this.experience = 0;
         this.moveCount = 5;
     }
 
-    public void setExperience(byte experience) {
-        this.experience = experience;
+    // добавить опыт
+
+    public void addExperience(int experience) {
+        this.experience += experience;
     }
 
     public void addMoveCount() {
@@ -37,6 +42,10 @@ public class Hero extends Unit {
         if (this.moveCount == 0) {
             this.moveCount = 5;
         }
+    }
+// проверка жив ли герой
+    public boolean isAlive() {
+        return hp > 0;
     }
 
     public int getTargetX() {
@@ -68,9 +77,13 @@ public class Hero extends Unit {
             targetX = cellX;
             targetY = cellY;
             m.takeDamage(1);
+// нападение монстра
+            m.getDamage(this);
+
             if (!m.isActive()) {
-                experience += 1;
+                addExperience(1);
             }
+// счет шагов - при ударе расходуется ход
             addMoveCount();
         }
 
@@ -85,6 +98,7 @@ public class Hero extends Unit {
                 movementTime = 0;
                 cellX = targetX;
                 cellY = targetY;
+// счет шагов
                 addMoveCount();
             }
         }
@@ -92,22 +106,26 @@ public class Hero extends Unit {
 
     @Override
     public void render(SpriteBatch batch) {
-        float px = cellX * GameMap.CELL_SIZE;
-        float py = cellY * GameMap.CELL_SIZE;
-        if (!isStayStill()) {
-            px = cellX * GameMap.CELL_SIZE + (targetX - cellX) * (movementTime / movementMaxTime) * GameMap.CELL_SIZE;
-            py = cellY * GameMap.CELL_SIZE + (targetY - cellY) * (movementTime / movementMaxTime) * GameMap.CELL_SIZE;
+        if (isAlive()) {
+            float px = cellX * GameMap.CELL_SIZE;
+            float py = cellY * GameMap.CELL_SIZE;
+            if (!isStayStill()) {
+                px = cellX * GameMap.CELL_SIZE + (targetX - cellX) * (movementTime / movementMaxTime) * GameMap.CELL_SIZE;
+                py = cellY * GameMap.CELL_SIZE + (targetY - cellY) * (movementTime / movementMaxTime) * GameMap.CELL_SIZE;
+            }
+            batch.draw(texture, px, py);
+            batch.setColor(0.0f, 0.0f, 0.0f, 1.0f);
+            batch.draw(textureHp, px + 1, py + 51, 58, 10);
+            batch.setColor(0.7f, 0.0f, 0.0f, 1.0f);
+            batch.draw(textureHp, px + 2, py + 52, 56, 8);
+            batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
+            batch.draw(textureHp, px + 2, py + 52, (float) hp / hpMax * 56, 8);
+            batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+            // отображается опыт под жизнью -
+            batch.draw(textureHp, px + 2, py + 50, (float) experience /maxExperience * 56, 2);
+            // отображение ходов
+            batch.draw(textureHp, px + 2, py + 2, (float) moveCount / 5 * 56, 8);
+            batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         }
-        batch.draw(texture, px, py);
-        batch.setColor(0.0f, 0.0f, 0.0f, 1.0f);
-        batch.draw(textureHp, px + 1, py + 51, 58, 10);
-        batch.setColor(0.7f, 0.0f, 0.0f, 1.0f);
-        batch.draw(textureHp, px + 2, py + 52, 56, 8);
-        batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
-        batch.draw(textureHp, px + 2, py + 52, (float) hp / hpMax * 56, 8);
-        batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-        batch.draw(textureHp, px + 2, py + 2, (float) moveCount / 5 * 56, 8);
-        batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }

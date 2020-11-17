@@ -17,6 +17,14 @@ public class Monster extends Unit {
         this.hp = -1;
     }
 
+    public void getDamage(Hero hero) {
+        if (this.isActive()) {
+            if (Math.random() < 0.25) {
+                hero.takeDamage(1);
+            }
+        }
+    }
+
     public void activate(int cellX, int cellY) {
         this.cellX = cellX;
         this.cellY = cellY;

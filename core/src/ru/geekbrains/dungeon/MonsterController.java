@@ -7,7 +7,6 @@ import ru.geekbrains.dungeon.units.Monster;
 
 public class MonsterController {
     private static final int MAX_MONSTERS = 100;
-
     private GameController gc;
     private Monster[] monsters;
 
@@ -43,25 +42,10 @@ public class MonsterController {
         return null;
     }
 
-    public void getDamage(Monster m) {
-        int x = gc.getHero().getTargetX();
-        int y = gc.getHero().getTargetY();
-        if (m.isActive()) {
-            if ((x == m.getCellX() + 1 || x == m.getCellX() - 1) && y == m.getCellY() ||
-                    (y == m.getCellY() + 1 || y == m.getCellY() - 1) && x == m.getCellX()) {
-                if (Math.random() < 0.25) {
-                    gc.getHero().takeDamage(1);
-                }
-            }
-        }
-    }
-
-
     public void update(float dt) {
         for (Monster m : monsters) {
             if (m.isActive()) {
                 m.update(dt);
-                getDamage(m);
             }
         }
     }
