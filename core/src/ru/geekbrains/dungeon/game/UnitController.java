@@ -2,6 +2,8 @@ package ru.geekbrains.dungeon.game;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import ru.geekbrains.dungeon.helpers.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ public class UnitController {
     private Unit currentUnit;
     private int index;
     private List<Unit> allUnits;
+    private int round;
 
     public MonsterController getMonsterController() {
         return monsterController;
@@ -58,6 +61,19 @@ public class UnitController {
         }
         currentUnit = allUnits.get(index);
         currentUnit.startTurn();
+
+        // восстановление жизни на 1
+        if (round > 1 && currentUnit.hp < currentUnit.hpMax) {
+            currentUnit.hp++;
+        }
+        // счет раундов
+        if (currentUnit.equals(hero)) {
+            round++;
+        }
+        // активация нового монстра вызов метода
+        if (currentUnit.equals(hero) && round % 3 == 0) {
+            activateNewMonster();
+        }
     }
 
     public void render(SpriteBatch batch, BitmapFont font18) {
@@ -80,5 +96,20 @@ public class UnitController {
         if (unitIndex <= index) {
             index--;
         }
+    }
+
+    public int getRound () {
+        return round;
+    }
+
+    // метод активация нового монстра
+    public void activateNewMonster () {
+        int x, y;
+        do {
+            x = MathUtils.random(0, gc.getGameMap().getCellsX() - 1);
+            y = MathUtils.random(0, gc.getGameMap().getCellsY() - 1);
+        } while (!gc.getGameMap().isCellPassable(x, y) && !isCellFree(x, y));
+        monsterController.activate(x, y);
+        allUnits.add(monsterController.getMonsterInCell(x, y));
     }
 }

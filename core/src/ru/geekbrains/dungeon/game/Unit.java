@@ -22,6 +22,8 @@ public abstract class Unit implements Poolable {
     int targetX, targetY;
     int turns, maxTurns;
     float innerTimer;
+    // отрисовка hp
+    float hpAlfa;
 
     public int getDefence() {
         return defence;
@@ -53,6 +55,7 @@ public abstract class Unit implements Poolable {
         this.movementMaxTime = 0.2f;
         this.attackRange = 2;
         this.innerTimer = MathUtils.random(1000.0f);
+        this.hpAlfa = 0.2f;
     }
 
     public void startTurn() {
@@ -112,6 +115,9 @@ public abstract class Unit implements Poolable {
                 turns--;
             }
         }
+        if (hp < hpMax) {
+            hpAlfa = 1.0f;
+        }
     }
 
     public void render(SpriteBatch batch, BitmapFont font18) {
@@ -122,14 +128,14 @@ public abstract class Unit implements Poolable {
             py = cellY * GameMap.CELL_SIZE + (targetY - cellY) * (movementTime / movementMaxTime) * GameMap.CELL_SIZE;
         }
         batch.draw(texture, px, py);
-        batch.setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        batch.setColor(0.0f, 0.0f, 0.0f, hpAlfa);
 
 
         float barX = px, barY = py + MathUtils.sin(innerTimer * 5.0f) * 2;
         batch.draw(textureHp, barX + 1, barY + 51, 58, 10);
-        batch.setColor(0.7f, 0.0f, 0.0f, 1.0f);
+        batch.setColor(0.7f, 0.0f, 0.0f, hpAlfa);
         batch.draw(textureHp, barX + 2, barY + 52, 56, 8);
-        batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
+        batch.setColor(0.0f, 1.0f, 0.0f, hpAlfa);
         batch.draw(textureHp, barX + 2, barY + 52, (float) hp / hpMax * 56, 8);
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         font18.draw(batch, "" + hp, barX, barY + 64, 60, 1, false);
