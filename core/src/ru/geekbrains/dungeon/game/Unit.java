@@ -26,6 +26,7 @@ public abstract class Unit implements Poolable {
     float movementMaxTime;
     int targetX, targetY;
     int turns, maxTurns;
+    int attackCount, maxAttackCount;
     float innerTimer;
     StringBuilder stringHelper;
 
@@ -40,6 +41,7 @@ public abstract class Unit implements Poolable {
         this.damage = 2;
         this.defence = 0;
         this.maxTurns = GameController.TURNS_COUNT;
+        this.maxAttackCount = GameController.ATTACT_COUNT;
         this.movementMaxTime = 0.2f;
         this.attackRange = 2;
         this.innerTimer = MathUtils.random(1000.0f);
@@ -58,8 +60,12 @@ public abstract class Unit implements Poolable {
         }
     }
 
+
+    // 2. Каждому персонажу дается количество шагов и атак, в начале хода они генерятся в пределах 1-4
+
     public void startTurn() {
-        turns = maxTurns;
+        turns = MathUtils.random(1, maxTurns);
+        attackCount= MathUtils.random(1, maxAttackCount);
     }
 
     public void startRound() {
@@ -81,7 +87,7 @@ public abstract class Unit implements Poolable {
     }
 
     public boolean canIMakeAction() {
-        return gc.getUnitController().isItMyTurn(this) && turns > 0 && isStayStill();
+        return gc.getUnitController().isItMyTurn(this) && (turns > 0 || attackCount > 0)  && isStayStill();
     }
 
     public boolean isStayStill() {
@@ -103,10 +109,17 @@ public abstract class Unit implements Poolable {
                 cellY - target.getCellY() == 0 && Math.abs(cellX - target.getCellX()) <= attackRange;
     }
 
+    // 3. На соответствующие действия персонаж тратит эти очки, если сделать ничего не может/не хочет, то
+    // счетчик его ходов обнуляется (действия шаги/атака заменит turns)
+
     public void attack(Unit target) {
-        target.takeDamage(this, BattleCalc.attack(this, target));
-        this.takeDamage(target, BattleCalc.checkCounterAttack(this, target));
-        turns--;
+        if (attackCount > 0) {
+            target.takeDamage(this, BattleCalc.attack(this, target));
+            this.takeDamage(target, BattleCalc.checkCounterAttack(this, target));
+            attackCount--;
+        } else {
+            turns = 0;
+        }
     }
 
     public void update(float dt) {
@@ -147,6 +160,14 @@ public abstract class Unit implements Poolable {
         stringHelper.append(hp);
         font18.setColor(1.0f, 1.0f, 1.0f, hpAlpha);
         font18.draw(batch, stringHelper, barX, barY + 64, 60, 1, false);
+
+// 4. Над головой текущего игрока можно отобразить количество каждого действия S2, A3 (step - 2, attack - 3)
+
+        stringHelper.setLength(0);
+        stringHelper.append("S:").append(turns).append(" A:").append(attackCount);
+
+        font18.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        font18.draw(batch, stringHelper, barX + 2, barY + 80, 60, 1, false);
 
         font18.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);

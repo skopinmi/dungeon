@@ -38,5 +38,6 @@ public class Hero extends Unit {
                 .append("Player: ").append(name).append("\n")
                 .append("Gold: ").append(gold).append("\n");
         font.draw(batch, stringHelper, x, y);
+
     }
 }
