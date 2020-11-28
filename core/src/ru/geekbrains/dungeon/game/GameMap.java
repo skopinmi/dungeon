@@ -61,6 +61,10 @@ public class GameMap {
         this.treesTextures = Assets.getInstance().getAtlas().findRegion("trees").split(60, 90)[0];
     }
 
+    public int getCellSize() {
+        return CELL_SIZE;
+    }
+
     public boolean isCellPassable(int cx, int cy) {
         if (cx < 0 || cx > getCellsX() - 1 || cy < 0 || cy > getCellsY() - 1) {
             return false;

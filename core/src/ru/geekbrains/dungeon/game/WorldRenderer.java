@@ -32,6 +32,7 @@ public class WorldRenderer {
         gc.getGameMap().render(batch);
         gc.getUnitController().render(batch, font18);
         gc.getProjectileController().render(batch);
+        gc.getFogOfWar().render(batch);
         batch.setColor(1, 1, 1, 0.5f);
         batch.draw(cursorTexture, gc.getCursorX() * GameMap.CELL_SIZE, gc.getCursorY() * GameMap.CELL_SIZE);
         batch.setColor(1, 1, 1, 1);
@@ -43,7 +44,6 @@ public class WorldRenderer {
         batch.begin();
         gc.getUnitController().getHero().renderHUD(batch, font24, 10, ScreenManager.WORLD_HEIGHT - 10);
         batch.end();
-
         ScreenManager.getInstance().pointCameraTo(camX, camY);
     }
 }

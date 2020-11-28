@@ -17,6 +17,7 @@ public class GameController {
     private ProjectileController projectileController;
     private UnitController unitController;
     private GameMap gameMap;
+    private FogOfWar fogOfWar;
 
     private Vector2 mouse;
     private Vector2 pressedMouse;
@@ -29,6 +30,9 @@ public class GameController {
         this.mouse = new Vector2(0, 0);
         this.pressedMouse = new Vector2(0, 0);
         this.gameMap = new GameMap();
+
+        this.fogOfWar = new FogOfWar(this);
+
         this.unitController = new UnitController(this);
         this.projectileController = new ProjectileController();
         this.unitController.init(INITIAL_MONSTERS_COUNT);
@@ -51,6 +55,7 @@ public class GameController {
         checkMouse();
         projectileController.update(dt);
         unitController.update(dt);
+        fogOfWar.update();
     }
 
     public void checkMouse() {
