@@ -122,6 +122,10 @@ public abstract class Unit implements Poolable {
         if (!gc.getGameMap().isCellPassable(argCellX, argCellY) || !gc.getUnitController().isCellFree(argCellX, argCellY)) {
             return;
         }
+        if (gc.getGameMap().getCellViscosity(cellX, cellY) > stats.movePoints) {
+            stats.movePoints = 0;
+            return;
+        }
         if (stats.movePoints > 0 && Math.abs(argCellX - cellX) + Math.abs(argCellY - cellY) == 1) {
             targetX = argCellX;
             targetY = argCellY;
@@ -150,9 +154,10 @@ public abstract class Unit implements Poolable {
             walkingTime += dt;
             if (movementTime > movementMaxTime) {
                 movementTime = 0;
+                // вычитаем "вязкость"
+                stats.movePoints -= gc.getGameMap().getCellViscosity(cellX, cellY);
                 cellX = targetX;
                 cellY = targetY;
-                stats.movePoints--;
                 gc.getGameMap().checkAndTakeDrop(this);
             }
         }
@@ -187,6 +192,13 @@ public abstract class Unit implements Poolable {
 
         font18.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         if (gc.getUnitController().isItMyTurn(this)) {
+            stringHelper.setLength(0);
+            stringHelper.append("MP: ").append(stats.movePoints).append(" AP: ").append(stats.attackPoints);
+            font18.draw(batch, stringHelper, barX, barY + 80, 60, 1, false);
+        }
+        // отображение характеристик персонажа при наведении мыши (МР и АР генерятся перед своим ходом,
+        // во время хода героя всегда 0 и 0)
+        if (gc.getCursorX() == cellX && gc.getCursorY() == cellY) {
             stringHelper.setLength(0);
             stringHelper.append("MP: ").append(stats.movePoints).append(" AP: ").append(stats.attackPoints);
             font18.draw(batch, stringHelper, barX, barY + 80, 60, 1, false);

@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import ru.geekbrains.dungeon.game.units.Unit;
 import ru.geekbrains.dungeon.helpers.Assets;
+import ru.geekbrains.dungeon.helpers.Utils;
 
 public class GameMap {
     public enum CellType {
@@ -17,16 +18,17 @@ public class GameMap {
 
     private class Cell {
         CellType type;
+        int viscosity;
 
         DropType dropType;
         int dropPower;
-
         int index;
 
         public Cell() {
             type = CellType.GRASS;
             dropType = DropType.NONE;
             index = 0;
+            viscosity = 1;
         }
 
         public void changeType(CellType to) {
@@ -50,6 +52,9 @@ public class GameMap {
         return CELLS_Y;
     }
 
+
+
+
     private Cell[][] data;
     private TextureRegion grassTexture;
     private TextureRegion goldTexture;
@@ -60,6 +65,10 @@ public class GameMap {
         for (int i = 0; i < CELLS_X; i++) {
             for (int j = 0; j < CELLS_Y; j++) {
                 this.data[i][j] = new Cell();
+                // треть клеток становится труднопроходимыми 2
+                if (MathUtils.random(1, 10) < 3) {
+                    data[i][j].viscosity = 2;
+                }
             }
         }
         int treesCount = (int) ((CELLS_X * CELLS_Y * FOREST_PERCENTAGE) / 100.0f);
@@ -86,7 +95,12 @@ public class GameMap {
     public void render(SpriteBatch batch) {
         for (int i = 0; i < CELLS_X; i++) {
             for (int j = CELLS_Y - 1; j >= 0; j--) {
+                //прозрачность 0.5
+                if (data[i][j].viscosity == 2) {
+                    batch.setColor(1f, 1, 1, 1f);
+                }
                 batch.draw(grassTexture, i * CELL_SIZE, j * CELL_SIZE);
+                batch.setColor(1, 1, 1, 0.9f);
                 if (data[i][j].type == CellType.TREE) {
                     batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
                 }
@@ -124,5 +138,9 @@ public class GameMap {
         }
         currentCell.dropType = DropType.NONE;
         currentCell.dropPower = 0;
+    }
+
+    public int getCellViscosity (int cellX, int cellY) {
+        return data[cellX][cellY].viscosity;
     }
 }
