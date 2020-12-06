@@ -5,21 +5,25 @@ import lombok.Getter;
 
 @Getter
 public class Stats {
+    int level;
     int hp, maxHp;
-    int defence;
     int attackPoints, minAttackPoints, maxAttackPoints;
     int movePoints, minMovePoints, maxMovePoints;
     int visionRadius;
+    // сытость
+    int fill;
 
-    public Stats(int maxHp, int attack, int defence, int minAttackPoints, int maxAttackPoint, int minMovePoints, int maxMovePoint) {
+    public Stats(int level, int maxHp, int minAttackPoints, int maxAttackPoint, int minMovePoints, int maxMovePoint) {
+        this.level = level;
         this.maxHp = maxHp;
         this.hp = this.maxHp;
-        this.defence = defence;
         this.minAttackPoints = minAttackPoints;
         this.maxAttackPoints = maxAttackPoint;
         this.minMovePoints = minMovePoints;
         this.maxMovePoints = maxMovePoint;
         this.visionRadius = 5;
+        this.attackPoints = 5;
+        this.fill = 100;
     }
 
     public void restorePoints() {
@@ -45,5 +49,20 @@ public class Stats {
 
     public boolean doIHaveAnyPoints() {
         return attackPoints > 0 || movePoints > 0;
+    }
+
+    public void addFill () {
+        fill += MathUtils.random(10 , 25);
+        if (fill > 100){
+            fill = 100;
+        }
+    }
+
+    public void lessFill(){
+        if (fill > 0) {
+            fill--;
+        } else {
+            hp--;
+        }
     }
 }

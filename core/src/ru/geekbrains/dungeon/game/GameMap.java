@@ -12,7 +12,7 @@ public class GameMap {
     }
 
     public enum DropType {
-        NONE, GOLD
+        NONE, GOLD, BERRY
     }
 
     private class Cell {
@@ -53,6 +53,7 @@ public class GameMap {
     private Cell[][] data;
     private TextureRegion grassTexture;
     private TextureRegion goldTexture;
+    private TextureRegion berryTexture;
     private TextureRegion[] treesTextures;
 
     public GameMap() {
@@ -71,6 +72,7 @@ public class GameMap {
         this.grassTexture = Assets.getInstance().getAtlas().findRegion("grass");
         this.goldTexture = Assets.getInstance().getAtlas().findRegion("chest").split(60, 60)[0][0];
         this.treesTextures = Assets.getInstance().getAtlas().findRegion("trees").split(60, 90)[0];
+        this.berryTexture = Assets.getInstance().getAtlas().findRegion("chest").split(60, 60)[0][0];
     }
 
     public boolean isCellPassable(int cx, int cy) {
@@ -83,15 +85,25 @@ public class GameMap {
         return true;
     }
 
-    public void render(SpriteBatch batch) {
+    public void renderGround(SpriteBatch batch) {
         for (int i = 0; i < CELLS_X; i++) {
             for (int j = CELLS_Y - 1; j >= 0; j--) {
                 batch.draw(grassTexture, i * CELL_SIZE, j * CELL_SIZE);
+            }
+        }
+    }
+
+    public void renderObjects(SpriteBatch batch) {
+        for (int i = 0; i < CELLS_X; i++) {
+            for (int j = CELLS_Y - 1; j >= 0; j--) {
                 if (data[i][j].type == CellType.TREE) {
                     batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
                 }
                 if (data[i][j].dropType == DropType.GOLD) {
                     batch.draw(goldTexture, i * CELL_SIZE, j * CELL_SIZE);
+                }
+                if (data[i][j].dropType == DropType.BERRY) {
+                    batch.draw(berryTexture, i * CELL_SIZE, j * CELL_SIZE);
                 }
             }
         }
@@ -108,6 +120,28 @@ public class GameMap {
                 data[cellX][cellY].dropPower = goldAmount;
             }
         }
+    }
+// генерация ягодок
+    public void generateBerry() {
+
+        for (int i = 0; i < CELLS_X; i++) {
+            for (int j = CELLS_Y - 1; j >= 0; j--) {
+                if (data[i][j].type.equals(CellType.TREE) && !data[i][j].dropType.equals(DropType.BERRY)) {
+                    if(MathUtils.random(1, 10) == 5) {
+                        data[i][j].dropType = DropType.BERRY;
+                    }
+                }
+            }
+        }
+    }
+
+//  дерево с ягодкой?
+    public boolean checkBerry(int cellX, int cellY){
+        return data[cellX][cellY].dropType == DropType.BERRY;
+    }
+//  поедание ягодок
+    public void  eatBerry(int cellX, int cellY){
+        data[cellX][cellY].dropType = DropType.NONE;
     }
 
     public boolean hasDropInCell(int cellX, int cellY) {
