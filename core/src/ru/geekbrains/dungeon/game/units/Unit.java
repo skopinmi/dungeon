@@ -1,14 +1,12 @@
 package ru.geekbrains.dungeon.game.units;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import lombok.Data;
-import ru.geekbrains.dungeon.game.BattleCalc;
-import ru.geekbrains.dungeon.game.GameController;
-import ru.geekbrains.dungeon.game.GameMap;
-import ru.geekbrains.dungeon.game.Weapon;
+import ru.geekbrains.dungeon.game.*;
 import ru.geekbrains.dungeon.helpers.Assets;
 import ru.geekbrains.dungeon.helpers.Poolable;
 
@@ -52,10 +50,12 @@ public abstract class Unit implements Poolable {
     int cellX;
     int cellY;
     int gold;
+
     float movementTime;
     float movementMaxTime;
     int targetX, targetY;
     Weapon weapon;
+    Armour armour;
 
     float innerTimer;
     StringBuilder stringHelper;
@@ -64,9 +64,21 @@ public abstract class Unit implements Poolable {
     float timePerFrame;
     float walkingTime;
 
+    int getCellCenterX() {
+        return cellX * GameMap.CELL_SIZE + GameMap.CELL_SIZE / 2;
+    }
+
+    int getCellCenterY() {
+        return cellY * GameMap.CELL_SIZE + GameMap.CELL_SIZE / 2;
+    }
+
+    int getCellTopY() {
+        return (cellY + 1) * GameMap.CELL_SIZE;
+    }
+
     public Unit(GameController gc, int cellX, int cellY, int hpMax, String textureName) {
         this.gc = gc;
-        this.stats = new Stats(hpMax, 2, 1, 1, 5, 1, 5);
+        this.stats = new Stats(1, hpMax, 1, 5, 1, 5);
         this.cellX = cellX;
         this.cellY = cellY;
         this.targetX = cellX;
@@ -78,6 +90,7 @@ public abstract class Unit implements Poolable {
         this.gold = MathUtils.random(1, 5);
         this.textures = Assets.getInstance().getAtlas().findRegion(textureName).split(60, 60);
         this.currentDirection = Direction.DOWN;
+        this.armour = gc.getArmourController().getArmourByIndex(0);
     }
 
     public void addGold(int amount) {
@@ -103,6 +116,17 @@ public abstract class Unit implements Poolable {
 
     public boolean takeDamage(Unit source, int amount) {
         stats.hp -= amount;
+        stringHelper.setLength(0);
+        if (amount > 0) {
+            stringHelper.append(-amount);
+        } else {
+            stringHelper.append("Blocked");
+        }
+        Color currentColor = Color.WHITE;
+        if (gc.getUnitController().isItMyTurn(this)) {
+            currentColor = Color.RED;
+        }
+        gc.getInfoController().setup(getCellCenterX(), getCellTopY(), stringHelper, currentColor);
         if (stats.hp <= 0) {
             gc.getUnitController().removeUnitAfterDeath(this);
             gc.getGameMap().generateDrop(cellX, cellY, 1);
@@ -119,11 +143,8 @@ public abstract class Unit implements Poolable {
     }
 
     public void goTo(int argCellX, int argCellY) {
-        if (!gc.getGameMap().isCellPassable(argCellX, argCellY) || !gc.getUnitController().isCellFree(argCellX, argCellY)) {
-            return;
-        }
-        if (gc.getGameMap().getCellViscosity(cellX, cellY) > stats.movePoints) {
-            stats.movePoints = 0;
+
+        if (!gc.isCellEmpty(argCellX, argCellY)) {
             return;
         }
         if (stats.movePoints > 0 && Math.abs(argCellX - cellX) + Math.abs(argCellY - cellY) == 1) {
@@ -141,10 +162,16 @@ public abstract class Unit implements Poolable {
     public void attack(Unit target) {
         currentDirection = Direction.getMoveDirection(cellX, cellY, target.cellX, target.cellY);
         target.takeDamage(this, BattleCalc.attack(this, target));
+
         if (target.canIAttackThisTarget(this, 0)) {
-            this.takeDamage(target, BattleCalc.checkCounterAttack(this, target));
+            boolean shouldICounterAttack = BattleCalc.rollCounterAttack(this, target);
+            if (shouldICounterAttack) {
+                this.takeDamage(target, BattleCalc.checkCounterAttack(this, target));
+            }
         }
         stats.attackPoints--;
+        stats.lessFill();
+        gc.getEffectController().setup(target.getCellCenterX(), target.getCellCenterY(), weapon.getFxIndex());
     }
 
     public void update(float dt) {
@@ -154,10 +181,10 @@ public abstract class Unit implements Poolable {
             walkingTime += dt;
             if (movementTime > movementMaxTime) {
                 movementTime = 0;
-                // вычитаем "вязкость"
-                stats.movePoints -= gc.getGameMap().getCellViscosity(cellX, cellY);
                 cellX = targetX;
                 cellY = targetY;
+                stats.movePoints--;
+                stats.lessFill();
                 gc.getGameMap().checkAndTakeDrop(this);
             }
         }
@@ -192,13 +219,6 @@ public abstract class Unit implements Poolable {
 
         font18.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         if (gc.getUnitController().isItMyTurn(this)) {
-            stringHelper.setLength(0);
-            stringHelper.append("MP: ").append(stats.movePoints).append(" AP: ").append(stats.attackPoints);
-            font18.draw(batch, stringHelper, barX, barY + 80, 60, 1, false);
-        }
-        // отображение характеристик персонажа при наведении мыши (МР и АР генерятся перед своим ходом,
-        // во время хода героя всегда 0 и 0)
-        if (gc.getCursorX() == cellX && gc.getCursorY() == cellY) {
             stringHelper.setLength(0);
             stringHelper.append("MP: ").append(stats.movePoints).append(" AP: ").append(stats.attackPoints);
             font18.draw(batch, stringHelper, barX, barY + 80, 60, 1, false);
